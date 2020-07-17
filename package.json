@@ -1,6 +1,6 @@
 {
   "homepage": "http://jamiereardon.dev/react-to-do-list-app",
-  "name": "to-do-list-app",
+  "name": "react-to-do-list",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
