@@ -39,8 +39,6 @@ class App extends Component {
     input.value = '';
   }
 
-  // TODO: transition text-decoration? transition checkbox hover
-
   handleCheckbox = (e) => {
     const checkbox = e.target;
     const label = checkbox.parentNode;
