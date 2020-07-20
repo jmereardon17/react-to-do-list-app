@@ -50,12 +50,13 @@ class App extends Component {
   }
 
   addTask = (task) => {
-    // Update the task id counter
+    // set a variable to the highest task id number, or set it 0 if there are no tasks
     let prevTask;
     this.state.tasks.length > 0
-      ? prevTask = this.state.tasks.slice(-1)[0].id
+      ? prevTask = Math.max.apply(Math, this.state.tasks.map(task => { return task.id }))
       : prevTask = 0;
-    let prevTaskId = prevTask += 1;
+    // Update the task id counter by 1 to get a higher unique task id
+    const prevTaskId = prevTask += 1;
     // Add task to storage
     this.store.set(`task-${prevTaskId}`, { task: task, isDone: false, id: prevTaskId });
     const newTask = this.store.get(`task-${prevTaskId}`);
