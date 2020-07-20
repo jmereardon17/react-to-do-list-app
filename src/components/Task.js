@@ -3,14 +3,17 @@ import React from 'react';
 const Task = (props) => {
 
   const taskId = props.id;
+  const status = props.isDone
 
   return (
     <li className="task">
-      <label className="checkbox-container">{ props.task }
-        <input 
-          type="checkbox" 
+      <label className={`checkbox-container ${status ? "strike" : ""}`}>{props.task}
+        <input
+          type="checkbox"
           className="completed"
-          onChange={ props.handleCheckbox } />
+          onChange={(e) => props.handleCheckbox(taskId, e)}
+          checked={status}
+        />
         <span className="checkmark"></span>
       </label>
 

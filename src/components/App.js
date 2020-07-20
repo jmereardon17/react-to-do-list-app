@@ -4,6 +4,8 @@ import Task from './Task';
 
 class App extends Component {
 
+  store = require('store');
+
   state = {
     tasks: []
   };
@@ -12,24 +14,20 @@ class App extends Component {
     let tasks = [];
     const taskCount = localStorage.length;
     if (taskCount > 0) {
-      for (let i = 1; i <= taskCount; i += 1) {
-        const task = localStorage.getItem(`task-${i}`);
-        tasks.push({ task: task, id: i })
-      }
+      this.store.each(task => {
+        tasks.push(task);
+      });
     }
-    this.setState( prevState => {
+    this.setState(prevState => {
       return {
         tasks: prevState.tasks = tasks
       }
-    });
+    });  
   }
 
   componentDidMount() {
     this.storedTasks()
   }
-
-  // Task id counter variable
-  prevTaskId = localStorage.length;
 
   handleSubmit = (e) => {
     e.preventDefault();
@@ -39,42 +37,80 @@ class App extends Component {
     input.value = '';
   }
 
-  handleCheckbox = (e) => {
+  handleCheckbox = (taskId, e) => {
     const checkbox = e.target;
     const label = checkbox.parentNode;
-    checkbox.checked
-      ? label.classList.add('strike')
-      : label.classList.remove('strike')
+    if (checkbox.checked) {
+      label.classList.add('strike');
+      this.updateTask(taskId, true);
+    } else {
+      label.classList.remove('strike');
+      this.updateTask(taskId, false);
+    }
   }
 
   addTask = (task) => {
     // Update the task id counter
-    this.prevTaskId += 1;
-    // Add task to localStorage
-    localStorage.setItem(`task-${this.prevTaskId}`, `${task}`);
-    const newTask = localStorage.getItem(`task-${this.prevTaskId}`);
+    let prevTask;
+    this.state.tasks.length > 0
+      ? prevTask = this.state.tasks.slice(-1)[0].id
+      : prevTask = 0;
+    let prevTaskId = prevTask += 1;
+    // Add task to storage
+    this.store.set(`task-${prevTaskId}`, { task: task, isDone: false, id: prevTaskId });
+    const newTask = this.store.get(`task-${prevTaskId}`);
     // Update state
     this.setState( prevState => ({
         tasks: [
           ...prevState.tasks,
-          {
-            task: newTask,
-            id: this.prevTaskId
-          }
+          newTask
         ]
        }
     ));
   }
 
   removeTask = (taskId) => {
-    // Remove task from localStorage
-    localStorage.removeItem(`task-${taskId}`);
+    // Remove task from storage
+    this.store.remove(`task-${taskId}`);
     // Update State
     this.setState( prevState => {
       return {
         tasks: prevState.tasks.filter( task => task.id !== taskId)
       }
     });
+  }
+
+  updateTask = (taskId, status) => {
+    // copy current state
+    const { tasks } = { ...this.state };
+    // assign value to currentState
+    const currentState = tasks;
+    // loop over the array and find the task where the id matches the task id argument
+    currentState.forEach( task => {
+      if (task.id === taskId) {
+        // update the property isDone with boolean value
+        task.isDone = status;
+      }
+    });
+    // update state with the new value for the isDone property
+    this.setState( prevState => {
+      return {
+        tasks: prevState.tasks = currentState
+      }
+    });
+    // loop over storage and find the task where the id matches the task id argument
+    this.store.each((task) => {
+      if (task.id === taskId) {
+        // duplicate the original task object
+        const copiedTask = this.store.get(`task-${taskId}`);
+        // update the property isDone with boolean value
+        copiedTask.isDone = status;
+        // delete the original task from storage
+        this.store.remove(`task-${taskId}`);
+        // add the copied task with updated property
+        this.store.set(`task-${taskId}`, copiedTask);
+      }
+    })
   }
 
   render() {
@@ -87,14 +123,15 @@ class App extends Component {
         />
         <ul className="to-do-list">
           { this.state.tasks.map(task =>
-            <Task
-              task={task.task}
-              id={task.id}
-              key={task.id.toString()}
-              handleCheckbox={this.handleCheckbox}
-              removeTask={this.removeTask}
-            />
-          )}
+              <Task
+                task={ task.task }
+                id={ task.id }
+                key={ task.id.toString() }
+                handleCheckbox={ this.handleCheckbox }
+                isDone={ task.isDone }
+                removeTask={ this.removeTask }
+              />
+            )}
         </ul>
       </div>
     );
