@@ -11,18 +11,9 @@ class App extends Component {
   };
 
   storedTasks = () => {
-    let tasks = [];
-    const taskCount = localStorage.length;
-    if (taskCount > 0) {
-      this.store.each(task => {
-        tasks.push(task);
-      });
-    }
-    this.setState(prevState => {
-      return {
-        tasks: prevState.tasks = tasks
-      }
-    });  
+    const tasks = [];
+    this.store.each(item => item.task && tasks.push(item));
+    this.setState(prevState => ({ tasks: prevState.tasks = tasks }));
   }
 
   componentDidMount() {
@@ -40,13 +31,8 @@ class App extends Component {
   handleCheckbox = (taskId, e) => {
     const checkbox = e.target;
     const label = checkbox.parentNode;
-    if (checkbox.checked) {
-      label.classList.add('strike');
-      this.updateTask(taskId, true);
-    } else {
-      label.classList.remove('strike');
-      this.updateTask(taskId, false);
-    }
+    checkbox.checked ? label.classList.add('strike') : label.classList.remove('strike');
+    this.updateTask(taskId, checkbox.checked);
   }
 
   addTask = (task) => {
@@ -74,11 +60,7 @@ class App extends Component {
     // Remove task from storage
     this.store.remove(`task-${taskId}`);
     // Update State
-    this.setState( prevState => {
-      return {
-        tasks: prevState.tasks.filter( task => task.id !== taskId)
-      }
-    });
+    this.setState( prevState => ({ tasks: prevState.tasks.filter( task => task.id !== taskId) }));
   }
 
   updateTask = (taskId, status) => {
@@ -94,11 +76,7 @@ class App extends Component {
       }
     });
     // update state with the new value for the isDone property
-    this.setState( prevState => {
-      return {
-        tasks: prevState.tasks = currentState
-      }
-    });
+    this.setState( prevState => ({ tasks: prevState.tasks = currentState }));
     // loop over storage and find the task where the id matches the task id argument
     this.store.each((task) => {
       if (task.id === taskId) {
@@ -123,16 +101,16 @@ class App extends Component {
           handleSubmit={ this.handleSubmit }
         />
         <ul className="to-do-list">
-          { this.state.tasks.map(task =>
-              <Task
-                task={ task.task }
-                id={ task.id }
-                key={ task.id.toString() }
-                handleCheckbox={ this.handleCheckbox }
-                isDone={ task.isDone }
-                removeTask={ this.removeTask }
-              />
-            )}
+          { this.state.tasks.map(task => (
+            <Task
+              task={task.task}
+              id={task.id}
+              key={task.id.toString()}
+              handleCheckbox={this.handleCheckbox}
+              isDone={task.isDone}
+              removeTask={this.removeTask}
+            />
+          ))}
         </ul>
       </div>
     );
